@@ -6,7 +6,7 @@ from pathlib import Path
 
 # Add the parent directory to the Python path
 sys.path.append(str(Path(__file__).resolve().parents[1]))
-from tab_numeric.logics import NumericColumn
+from tab_num.logics import NumericColumn
 
 def display_tab_num_content(file_path=None, df=None):
     """
