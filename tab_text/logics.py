@@ -64,6 +64,14 @@ class TextColumn:
         -> None
 
         """
+
+        # If dataframe is not passed, read it from the file path
+        if self.df is None:
+    
+            self.df = pd.read_csv(self.file_path)
+        
+        # Filter all the text columns from the dataframe
+        self.cols_list = self.df.select_dtypes(include="object").columns.tolist()
         
 
     def set_data(self, col_name):
@@ -86,6 +94,29 @@ class TextColumn:
         --------------------
         -> None
         """
+
+        # Save the column values to a class variable 'serie'
+        self.serie = self.df[col_name]
+
+        # If column has values, convert it to string type and compute and set all values to be displayed into class variables
+        if not self.is_serie_none():
+            self.convert_serie_to_text()
+        
+            self.set_unique()
+            self.set_missing()
+            self.set_empty()
+            self.set_whitespace()
+            self.set_lowercase()
+            self.set_uppercase()
+            self.set_alphabet()
+            self.set_digit()
+            self.set_mode()
+
+            # Set the barchart class variable as the altair chart object
+            self.set_barchart()
+
+            # Set the values, occurrence and percentages in the frequent class variable
+            self.set_frequent()
         
 
     def convert_serie_to_text(self):
@@ -107,6 +138,7 @@ class TextColumn:
 
         """
         
+        self.serie = self.serie.astype(str)
 
     def is_serie_none(self):
         """
@@ -126,6 +158,8 @@ class TextColumn:
         -> (bool): Flag stating if the serie is empty or not
 
         """
+
+        return self.serie is None
         
 
     def set_unique(self):
@@ -146,6 +180,8 @@ class TextColumn:
         -> None
 
         """
+
+        self.n_unique = self.serie.nunique()
         
 
     def set_missing(self):
@@ -167,6 +203,7 @@ class TextColumn:
 
         """
         
+        self.n_missing = self.serie.isna().sum()
 
     def set_empty(self):
         """
@@ -186,6 +223,7 @@ class TextColumn:
         -> None
 
         """
+        self.n_empty = self.serie.eq("").sum()
         
 
     def set_mode(self):
@@ -206,7 +244,7 @@ class TextColumn:
         -> None
 
         """
-        
+        self.n_mode = self.serie.mode()[0]
 
     def set_whitespace(self):
         """
@@ -226,7 +264,7 @@ class TextColumn:
         -> None
 
         """
-        
+        self.n_space = self.serie.str.isspace().sum()
 
     def set_lowercase(self):
         """
@@ -246,6 +284,7 @@ class TextColumn:
         -> None
 
         """
+        self.n_lower = self.serie.str.islower().sum()
         
 
     def set_uppercase(self):
@@ -266,6 +305,7 @@ class TextColumn:
         -> None
 
         """
+        self.n_upper = self.serie.str.isupper().sum()
         
     
     def set_alphabet(self):
@@ -286,6 +326,7 @@ class TextColumn:
         -> None
 
         """
+        self.n_alpha = self.serie.str.isalpha().sum()
         
 
     def set_digit(self):
@@ -306,7 +347,7 @@ class TextColumn:
         -> None
 
         """
-        
+        self.n_digit = self.serie.str.isdigit().sum()
 
     def set_barchart(self):  
         """
@@ -326,6 +367,14 @@ class TextColumn:
         -> None
 
         """
+        # Get the number of times each unique value occurs in the column
+        df_value_counts = self.serie.value_counts().reset_index()
+
+        self.barchart = (
+            alt.Chart(df_value_counts)
+            .mark_bar()
+            .encode(x=alt.X(df_value_counts.columns[0], sort='-y'), y=df_value_counts.columns[1])
+        )
         
       
     def set_frequent(self, end=20):
@@ -347,6 +396,12 @@ class TextColumn:
         -> None
 
         """
+
+        self.frequent['value'] = self.serie.value_counts(normalize=False, sort=True, ascending=False).index
+        self.frequent['occurrence'] = self.serie.value_counts(normalize=False, sort=True, ascending=False).values
+        self.frequent['percentage'] = self.serie.value_counts(normalize=True, sort=True, ascending=False).values
+
+        self.frequent = self.frequent.head(end)
         
 
     def get_summary(self):
@@ -367,4 +422,32 @@ class TextColumn:
         -> (pd.DataFrame): Formatted dataframe to be displayed on the Streamlit app
 
         """
+
+        # Create a summary dataframe with the values to be displayed
+        description = [
+            "Number of Unique Values",
+            "Number of Rows with Missing Values",
+            "Number of Empty Rows",
+            "Number of Rows with Only Whitespace",
+            "Number of Rows with Only Lowercases",
+            "Number of Rows with Only Uppercases",
+            "Number of Rows with Only Alphabet",
+            "Number of Rows with Only Digits",
+            "Mode Value"
+        ]
+
+        value = [
+            self.n_unique,
+            self.n_missing,
+            self.n_empty,
+            self.n_space,
+            self.n_lower,
+            self.n_upper,
+            self.n_alpha,
+            self.n_digit,
+            self.n_mode
+        ]
         
+        summary_df = pd.DataFrame({"Description": description, "Value": value}, dtype="string")
+
+        return summary_df

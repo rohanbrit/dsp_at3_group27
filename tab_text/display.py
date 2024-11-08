@@ -28,3 +28,32 @@ def display_tab_text_content(file_path=None, df=None):
 
     """
     
+    # Create an object of the TextColumn class and save it in the session state
+    st.session_state["text_column"] = TextColumn(file_path=file_path, df=df)
+
+    # Call the find_text_cols() to filter columns with textual data
+    st.session_state.text_column.find_text_cols()
+
+    # Set the selected text column in a variable
+    option = st.selectbox("Which text column do you want to explore", st.session_state.text_column.cols_list)
+    
+    # Set the selected option in the session state
+    try:
+        st.session_state.text_column.set_data(option)
+    except Exception:
+        st.error("There was an error encountered while reading the file")
+        exit()
+
+    # Create an expander container to display the analysis and visualizations
+    with st.expander('Text Column', expanded=True):
+
+        # Create a table to display analysis information
+        st.table(data=st.session_state.text_column.get_summary())
+
+        # Create a bar chart showing the number of occurrence for each value
+        st.subheader("Bar Chart")
+        st.altair_chart(st.session_state.text_column.barchart, use_container_width=True)
+        
+        # Create a table listing the occurrences and percentage of the top 20 most frequent values
+        st.subheader("Most Frequent Values")
+        st.dataframe(st.session_state.text_column.frequent)
