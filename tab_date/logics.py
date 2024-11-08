@@ -465,15 +465,25 @@ class DateColumn:
 
         """
 
-        summry = [
-            ("Number of Unique Values", self.n_unique),
-            ("Number of Rows with Missing Values", self.n_missing),
-            ("Number of Rows with Weekend Dates", self.n_weekend),
-            ("Number of Rows with Weekday Dates", self.n_weekday),
-            ("Number of dates in Future", self.n_future),
-            ("Minimum Value", self.col_min),
-            ("Number of Rows with 1900", self.n_empty_1900),
-            ("Number of Rows with 1970", self.n_empty_1970),
+        summry_title = [
+            "Number of Unique Values",
+            "Number of Rows with Missing Values",
+            "Number of Rows with Weekend Dates",
+            "Number of Rows with Weekday Dates",
+            "Number of dates in Future",
+            "Minimum Value",
+            "Number of Rows with 1900",
+            "Number of Rows with 1970"
         ]
-        df_summry = pd.DataFrame(summry, columns=["Description", "Value"])
+        summry_value = [
+            self.n_unique,
+            self.n_missing,
+            self.n_weekend,
+            self.n_weekday,
+            self.n_future,
+            self.col_min,
+            self.n_empty_1900,
+            self.n_empty_1970
+        ]
+        df_summry = pd.DataFrame({"Description": summry_title, "Value": summry_value}, dtype="string")
         return df_summry
