@@ -27,4 +27,31 @@ def display_tab_date_content(file_path=None, df=None):
     -> None
 
     """
+    if file_path is not None:
+        date_col = DateColumn(file_path=file_path)
+    elif df is not None:
+        date_col = DateColumn(df=df)
+    else:
+        st.warning("Please provide either a file path or a dataframe to analyze date columns.")
+        return
     
+    st.session_state["date_colum"] = date_col
+    date_col.find_date_cols()
+  
+#   Check for empty list if not then proceed
+    if len(date_col.cols_list) !=0 :
+        selected_col = st.selectbox("Which date column do you want to explore", date_col.cols_list, key="date_col_selector")
+        date_col.set_data(selected_col)
+   
+        with st.expander("Date Column", expanded=True):
+            summary_df = date_col.get_summary()
+            st.table(summary_df)
+
+
+            st.subheader("BarChart")
+            st.altair_chart(date_col.barchart, use_container_width=True)
+
+            st.subheader("Most Frequent Values:")
+            st.write(date_col.frequent)
+    else:
+        st.write('No date Column Found')
